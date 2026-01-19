@@ -98,4 +98,167 @@ def parse_transactions(raw_lines):
     return data
 
 
+def validate_and_filter(transactions, region=None, min_amount=None, max_amount=None):
+    """
+    Validates transactions and applies optional filters
+
+    Parameters:
+    - transactions: list of transaction dictionaries
+    - region: filter by specific region (optional)
+    - min_amount: minimum transaction amount (Quantity * UnitPrice) (optional)
+    - max_amount: maximum transaction amount (optional)
+
+    Returns: tuple (valid_transactions, invalid_count, filter_summary)
+
+    Expected Output Format:
+    (
+        [list of valid filtered transactions],
+        5,  # count of invalid transactions
+        {
+            'total_input': 100,
+            'invalid': 5,
+            'filtered_by_region': 20,
+            'filtered_by_amount': 10,
+            'final_count': 65
+        }
+    )
+
+    Validation Rules:
+    - Quantity must be > 0 --checked for each transaction, and appended to valid list if valid
+    - UnitPrice must be > 0 --checked for each transaction, and appended to valid list if valid
+    - All required fields must be present -- checked for each transaction, and appended to valid list if valid
+    - TransactionID must start with 'T' --checked for each transaction, and appended to valid list if valid
+    - ProductID must start with 'P' --checked for each transaction, and appended to valid list if valid
+    - CustomerID must start with 'C' --checked for each transaction, and appended to valid list if valid
+
+    Filter Display:
+    - Print available regions to user before filtering
+    - Print transaction amount range (min/max) to user
+    - Show count of records after each filter applied
+    """
+    required_fields = ["TransactionID", "Date", "ProductID", "ProductName", "Quantity", "UnitPrice", "CustomerID", "Region"]
+    input_size = len(transactions)
+    valid_transactions = []
+    invalid_count = 0
+
+
+    
+    # Filter Display: Print transaction amount range (min/max) to user
+
+    # validate transactions
+
+    # check if all required fields present, and if all ok, then proceed with other checks. 
+    for t in transactions:
+        if not isinstance(t,dict):
+            invalid_count +=1 
+            continue
+    
+        missing = [k for k in required_fields if k not in t or t[k] in (None,"")]
+
+        if missing:
+            invalid_count +=1
+            continue
+
+        # - TransactionID must start with 'T'      
+        if not str(t["TransactionID"]).startswith("T"):
+            invalid_count +=1
+            continue
+
+        # - ProductID must start with 'P'
+        if not str(t["ProductID"]).startswith("P"):
+            invalid_count +=1
+            continue
+     
+        # - CustomerID must start with 'C'
+        if not str(t["CustomerID"]).startswith("C"):
+            invalid_count +=1
+            continue
+
+        try:
+            qty = int(t["Quantity"])
+            unit_price = int(t["UnitPrice"])
+        except (ValueError,TypeError):
+            invalid_count =+1
+            continue
+
+        # - Quantity must be > 0
+        if qty<=0 or unit_price <=0:
+            invalid_count += 1
+            continue 
+
+        t["Quantity"] = qty
+        t["UnitPrice"] = unit_price
+
+        valid_transactions.append(t)
+
+    # Filter Display:
+    # Print available regions to user before filtering
+    # Print transaction amount range (min/max) to user
+    # Show count of records after each filter applied
+    # Filter Display: Print available regions to user before filtering
+    
+    regions = sorted({
+        t.get("Region","").strip() 
+        for t in transactions 
+        if isinstance(t,dict) and t.get("Region")
+    })
+    print("Available regions: ", regions if regions else "None Found")
+    
+    if valid_transactions: 
+        amounts = [valid_transaction["Quantity"]*valid_transaction["UnitPrice"] for valid_transaction in valid_transactions]
+        print(f"Transaction amount range (valid only): min = {min(amounts):.2f}, max = {max(amounts):.2f}")
+    else:
+        print("No transaction to provide min and max amount")    
+
+    # order of filters from method signature: region, min amount, max amount
+    #region_filter = 0
+    #amount_filter = 0
+    filtered_out_region_count = 0
+    filtered_out_min_amt_count = 0 
+    filtered_out_max_amt_count = 0
+    latest_list = valid_transactions
+
+
+    if region is not None:
+        # t_by_region = all valid transactions for the selected region
+        pre_filter = len(latest_list) 
+        latest_list = [filtered_t for filtered_t in latest_list if str(filtered_t.get("Region")).strip().lower() == str(region).strip().lower()]
+        filtered_out_region_count = len(pre_filter)-len(latest_list)
+        print(f"After region filter, ({region}): {len(latest_list)} records")
+
+    if min_amount is not None:
+        # t_gt_min = subset of t_by_region and greater than Quantity*UnitPrice > min_amount
+        pre_filter = len(latest_list) 
+        latest_list = [filtered_t for filtered_t in latest_list if (filtered_t.get("Quantity"))* (filtered_t.get("Quantity"))>= float(min_amount)]
+        filtered_out_min_amt_count = len(pre_filter)-len(latest_list)
+        print(f"After min_amount filter, ({min_amount}): {len(latest_list)} records")
+
+        print("hi")
+
+
+    if max_amount is not None:
+        # t_lt_max = subset of t_by_region and greater than Quantity*UnitPrice < max_amount
+        pre_filter = len(latest_list) 
+        latest_list = [filtered_t for filtered_t in latest_list if (filtered_t.get("Quantity"))* (filtered_t.get("Quantity"))<= float(max_amount)]
+        filtered_out_max_amt_count = len(pre_filter)-len(latest_list)
+        print(f"After min_amount filter, ({max_amount}): {len(latest_list)} records")
+
+    filter_summary = {
+        "total_input": len(transactions),
+        "invalid": invalid_count,
+        "filtered_out_region_count": filtered_out_region_count,
+        "filtered_out_min_amt_count": filtered_out_min_amt_count,
+        "filtered_out_max_amt_count": filtered_out_max_amt_count,
+        "final_count": len(latest_list)
+    }
+        
+    #Returns: tuple (valid_transactions, invalid_count, filter_summary)
+    return latest_list, filter_summary
+
+
+
+
+
+
+
 
