@@ -176,7 +176,7 @@ def validate_and_filter(transactions, region=None, min_amount=None, max_amount=N
 
         try:
             qty = int(t["Quantity"])
-            unit_price = int(t["UnitPrice"])
+            unit_price = float(t["UnitPrice"])
         except (ValueError,TypeError):
             invalid_count =+1
             continue
@@ -190,6 +190,8 @@ def validate_and_filter(transactions, region=None, min_amount=None, max_amount=N
         t["UnitPrice"] = unit_price
 
         valid_transactions.append(t)
+
+    # print("ALL VALID TRANSACTIONS -----> ", valid_transactions)
 
     # Filter Display:
     # Print available regions to user before filtering
@@ -206,42 +208,50 @@ def validate_and_filter(transactions, region=None, min_amount=None, max_amount=N
     
     if valid_transactions: 
         amounts = [valid_transaction["Quantity"]*valid_transaction["UnitPrice"] for valid_transaction in valid_transactions]
-        print(f"Transaction amount range (valid only): min = {min(amounts):.2f}, max = {max(amounts):.2f}")
+        print(f"Transaction amount range (valid only): min = {min(amounts):,.2f}, max = {max(amounts):,.2f}")
     else:
         print("No transaction to provide min and max amount")    
 
     # order of filters from method signature: region, min amount, max amount
     #region_filter = 0
     #amount_filter = 0
+    
     filtered_out_region_count = 0
     filtered_out_min_amt_count = 0 
     filtered_out_max_amt_count = 0
     latest_list = valid_transactions
 
-
+    def calc_amt(t):
+        return t["Quantity"]*t["UnitPrice"]
+    
     if region is not None:
         # t_by_region = all valid transactions for the selected region
         pre_filter = len(latest_list) 
         latest_list = [filtered_t for filtered_t in latest_list if str(filtered_t.get("Region")).strip().lower() == str(region).strip().lower()]
-        filtered_out_region_count = len(pre_filter)-len(latest_list)
-        print(f"After region filter, ({region}): {len(latest_list)} records")
+                
+        filtered_out_region_count = pre_filter-len(latest_list)
+        #print(f"After region filter, ({region}): {len(latest_list)} records")
 
     if min_amount is not None:
         # t_gt_min = subset of t_by_region and greater than Quantity*UnitPrice > min_amount
         pre_filter = len(latest_list) 
-        latest_list = [filtered_t for filtered_t in latest_list if (filtered_t.get("Quantity"))* (filtered_t.get("Quantity"))>= float(min_amount)]
-        filtered_out_min_amt_count = len(pre_filter)-len(latest_list)
-        print(f"After min_amount filter, ({min_amount}): {len(latest_list)} records")
+        #print("In min filter", pre_filter)
+        
+        latest_list = [filtered_t for filtered_t in latest_list if ((filtered_t["Quantity"]))* (filtered_t["UnitPrice"]) >= float(min_amount)]
+        #print("shortlisted txn list length ... # of recs that have amt >300", len(latest_list))
+        
+        filtered_out_min_amt_count = pre_filter-len(latest_list)
+        #print(f"After min_amount filter, ({min_amount}): {len(latest_list)} records")
 
-        print("hi")
+        #print("hi")
 
 
     if max_amount is not None:
         # t_lt_max = subset of t_by_region and greater than Quantity*UnitPrice < max_amount
         pre_filter = len(latest_list) 
-        latest_list = [filtered_t for filtered_t in latest_list if (filtered_t.get("Quantity"))* (filtered_t.get("Quantity"))<= float(max_amount)]
-        filtered_out_max_amt_count = len(pre_filter)-len(latest_list)
-        print(f"After min_amount filter, ({max_amount}): {len(latest_list)} records")
+        latest_list = [filtered_t for filtered_t in latest_list if ((filtered_t["Quantity"]))* (filtered_t["UnitPrice"]) <= float(max_amount)]
+        filtered_out_max_amt_count = pre_filter-len(latest_list)
+        #print(f"After min_amount filter, ({max_amount}): {len(latest_list)} records")
 
     filter_summary = {
         "total_input": len(transactions),
@@ -251,9 +261,10 @@ def validate_and_filter(transactions, region=None, min_amount=None, max_amount=N
         "filtered_out_max_amt_count": filtered_out_max_amt_count,
         "final_count": len(latest_list)
     }
-        
+
+    #print ("Filter Summary", filter_summary)    
     #Returns: tuple (valid_transactions, invalid_count, filter_summary)
-    return latest_list, filter_summary
+    return latest_list, invalid_count, filter_summary
 
 
 
