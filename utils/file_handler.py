@@ -182,7 +182,11 @@ def validate_and_filter(transactions, region=None, min_amount=None, max_amount=N
             continue
 
         # - Quantity must be > 0
-        if qty<=0 or unit_price <=0:
+        if qty<=0:
+            invalid_count += 1
+            continue 
+
+        if unit_price <=0:
             invalid_count += 1
             continue 
 
