@@ -68,19 +68,23 @@ def parse_transactions(raw_lines):
     - Skip rows with incorrect number of fields
     """
     data = []
+    invalid_row = 0
+
     for line in raw_lines:
-        t_id, dt, p_id, p_name, qty_raw, price_raw, c_id, region=[f.strip() for f in line.split('|')]
+        t_id, dt, p_id, p_name, qty_raw, price_raw, c_id, region = [f.strip() for f in line.split('|')]
         
         p_name_clean = p_name.replace(",", " ").strip()
-        qty_raw_clean = qty_raw.replace(",", " ").strip()
-        price_raw_clean = price_raw.replace(",", " ").strip()
+        qty_raw_clean = qty_raw.replace(",", "").strip()
+        price_raw_clean = price_raw.replace(",", "").strip()
 
         try:
             qty = int(qty_raw_clean)
             unit_price = float(price_raw_clean)
         except ValueError:
+            invalid_row += 1
             continue
 
+        
         data.append(
            {
                # TransactionID|Date|ProductID|ProductName|Quantity|UnitPrice|CustomerID|Region
@@ -88,9 +92,9 @@ def parse_transactions(raw_lines):
                "TransactionID":t_id,
                "Date": dt,
                "ProductID": p_id,
-               "ProductName": p_name,
-               "Quantity": qty_raw,
-               "UnitPrice": price_raw,
+               "ProductName": p_name_clean,
+               "Quantity": qty,
+               "UnitPrice": unit_price,
                "CustomerID": c_id,
                "Region": region
            }
@@ -141,12 +145,9 @@ def validate_and_filter(transactions, region=None, min_amount=None, max_amount=N
     valid_transactions = []
     invalid_count = 0
 
-
-    
+  
     # Filter Display: Print transaction amount range (min/max) to user
-
     # validate transactions
-
     # check if all required fields present, and if all ok, then proceed with other checks. 
     for t in transactions:
         if not isinstance(t,dict):
@@ -154,7 +155,6 @@ def validate_and_filter(transactions, region=None, min_amount=None, max_amount=N
             continue
     
         missing = [k for k in required_fields if k not in t or t[k] in (None,"")]
-
         if missing:
             invalid_count +=1
             continue
@@ -178,23 +178,20 @@ def validate_and_filter(transactions, region=None, min_amount=None, max_amount=N
             qty = int(t["Quantity"])
             unit_price = float(t["UnitPrice"])
         except (ValueError,TypeError):
-            invalid_count =+1
+            invalid_count +=1
             continue
 
         # - Quantity must be > 0
-        if qty<=0:
+        if qty<=0 or unit_price <=0:
             invalid_count += 1
             continue 
 
-        if unit_price <=0:
-            invalid_count += 1
-            continue 
-
+        
         t["Quantity"] = qty
         t["UnitPrice"] = unit_price
 
         valid_transactions.append(t)
-
+    
     # print("ALL VALID TRANSACTIONS -----> ", valid_transactions)
 
     # Filter Display:

@@ -102,12 +102,13 @@ def main():
 
         latest_list, invalid_count, filter_summary = utils.file_handler.validate_and_filter(result1,region,min_amt, max_amt)
         print("[4/10] Validating transactions...")
-        print("✓ Valid: ", len(latest_list), "| Invalid: ", invalid_count, "\n")
+        print("✓ Valid: ", len(latest_list1), "| Invalid: ", invalid_count, "\n")
         print("Total Input Records: ", filter_summary["total_input"])
         print("Invalid records: ", filter_summary["invalid"])
         print("Count records after filtering by region: ", filter_summary["total_input"]-filter_summary["invalid"]-filter_summary["filtered_out_region_count"])
         print("Count records after filtering by min_amt: ", filter_summary["total_input"]-filter_summary["invalid"]-filter_summary["filtered_out_region_count"]-filter_summary["filtered_out_min_amt_count"])
         print("Count records after filtering by min_amt: ", filter_summary["total_input"]-filter_summary["invalid"]-filter_summary["filtered_out_region_count"]-filter_summary["filtered_out_min_amt_count"]-filter_summary["filtered_out_max_amt_count"])
+        print("\n")
 
 
     else:

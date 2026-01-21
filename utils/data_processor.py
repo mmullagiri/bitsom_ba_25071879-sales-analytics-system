@@ -9,10 +9,6 @@
 """
 def calculate_total_revenue(transactions):
     total_revenue = 0
-
-    length = len(transactions)
-    print("length of .... ", length)
-
     for t in transactions:
         qty = int(t.get("Quantity"))
         price = float(t.get("UnitPrice"))
@@ -24,9 +20,7 @@ def calculate_total_revenue(transactions):
 def region_wise_sales(transactions):
     """
     Analyzes sales by region
-
     Returns: dictionary with region statistics
-
     Expected Output Format:
     {
         'North': {
@@ -45,8 +39,26 @@ def region_wise_sales(transactions):
     - Sort by total_sales in descending order
     """
 
-    region_statistics = {}
+    region_statistics = {"North":{"total_sales":0.0,"transaction_count":0, "percentage":0.0},"South":{"total_sales":0.0,"transaction_count":0, "percentage":0.0},"East":{"total_sales":0.0,"transaction_count":0, "percentage":0.0},"West":{"total_sales":0.0,"transaction_count":0, "percentage":0.0}}
+       
     grand_total = 0.0
 
     for t in transactions:
-        region = "North"
+        region = str(t.get("Region")).strip()
+        qty = int(t.get("Quantity"))
+        price = float(t.get("UnitPrice"))
+        amount = qty * price
+
+        if not region:
+            continue
+
+        grand_total += amount
+
+        region_statistics[region]["total_sales"] += amount
+        region_statistics[region]["transaction_count"] += 1
+    
+    print("region stats", region_statistics)
+
+
+
+        
