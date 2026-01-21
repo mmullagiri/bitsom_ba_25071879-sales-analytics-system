@@ -119,7 +119,8 @@ def main():
     print("✓ Analysis complete")
     
     total_revenue = utils.data_processor.calculate_total_revenue(latest_list1)
-    print(total_revenue)
+    print("Total Revenue: ", total_revenue)
+    print(utils.data_processor.region_wise_sales(latest_list1))
 
 
 

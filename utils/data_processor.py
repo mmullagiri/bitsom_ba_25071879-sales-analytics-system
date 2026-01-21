@@ -57,6 +57,9 @@ def region_wise_sales(transactions):
         region_statistics[region]["total_sales"] += amount
         region_statistics[region]["transaction_count"] += 1
     
+    for region in region_statistics:
+        region_statistics[region]["percentage"] = f"{((region_statistics[region]["total_sales"]/grand_total)*100):.2f}"
+    
     print("region stats", region_statistics)
 
 
