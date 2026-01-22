@@ -121,6 +121,7 @@ def main():
     total_revenue = utils.data_processor.calculate_total_revenue(latest_list1)
     print("Total Revenue: ", total_revenue)
     print(utils.data_processor.region_wise_sales(latest_list1))
+    utils.data_processor.top_selling_products(latest_list1)
 
 
 
@@ -132,4 +133,5 @@ def main():
     #total_revenue = utils.data_processor.calculate_total_revenue(result1)
     #print("TOTAL REVENUE = ", total_revenue)
 
-main()
+if __name__ == "__main__":
+    main()
